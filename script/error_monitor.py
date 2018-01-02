@@ -60,18 +60,27 @@ def webhook(system, text):
 
 # tailf命令 跟踪日志文件
 def follow(self, system="", s=1):
-    with open(self, 'r') as file:
+    file = open(self, 'r')
+    try:
         file.seek(0, 2)
         while True:
             curr_position = file.tell()
             line = file.readline()
             if not line:
                 file.seek(curr_position)
+                # 先关闭原先文件,再打开新文件
+                if (os.path.exists(self)):
+                    if not (os.stat(self).st_size == curr_position):
+                        file.close()
+                        file = open(self, 'r')
+                        file.seek(0, 2)
+                        logging.warn('file is reopen:' + self)
             else:
                 if ("[ERROR]" in line):
-                    logging.error('less than 2 params')
-                    # webhook(system, line)
+                    webhook(system, line)
             time.sleep(s)
+    finally:
+        file.close()
 
 
 if __name__ == '__main__':
