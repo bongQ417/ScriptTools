@@ -10,9 +10,12 @@ import struct
 import logging
 import os
 
+script = os.environ["HOME"] + '/script/'
+if not (os.path.exists(script)):
+    os.mkdir(script, 0755)
 # 日志配置
 logging.basicConfig(
-    filename=os.environ["HOME"]+'/script/error_monitor.log',
+    filename=script + 'error_monitor.log',
     level=logging.INFO,
     format='[%(levelname)s],%(asctime)s,%(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')

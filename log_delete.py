@@ -5,9 +5,12 @@ import os
 import datetime
 import logging
 
+script = os.environ["HOME"] + '/script/'
+if not (os.path.exists(script)):
+    os.mkdir(script, 0755)
 # 日志配置
 logging.basicConfig(
-    filename=os.environ["HOME"]+'/script/log_delete.log',
+    filename=script + 'log_delete.log',
     level=logging.INFO,
     format='[%(levelname)s],%(asctime)s,%(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
