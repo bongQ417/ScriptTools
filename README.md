@@ -19,8 +19,9 @@ crontab -l
 30 0 * * * python /root/script/log_archive.py /root/logs/base itembase
 0 1 * * * python /root/script/log_delete.py /root/logs/base/archive 7
 5 1 * * * python /root/script/log_delete.py /root/tomcat-8080/logs 7
+
+// 错误日志监控
+sh error_monitor.sh /root/logs/base/common-error.log itembase
 ```
-# 错误日志监控
-`sh error_monitor.sh /root/logs/base/common-error.log itembase`
 
 
