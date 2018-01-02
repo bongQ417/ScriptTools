@@ -13,12 +13,13 @@
 监控${file},将包含`ERROR`字段的错误行输出到钉钉群里
 
 
-#例子如下
-# crontab -l
+# 例子如下
+```
+crontab -l
 30 0 * * * python /root/script/log_archive.py /root/logs/base itembase
 0 1 * * * python /root/script/log_delete.py /root/logs/base/archive 7
 5 1 * * * python /root/script/log_delete.py /root/tomcat-8080/logs 7
-
+```
 # 错误日志监控
 `sh error_monitor.sh /root/logs/base/common-error.log itembase`
 
