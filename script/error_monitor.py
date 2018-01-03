@@ -10,21 +10,26 @@ import struct
 import logging
 import os
 
-script = os.environ["HOME"] + '/script/'
-if not (os.path.exists(script)):
-    os.mkdir(script, 0755)
+dirname = os.path.dirname(os.path.realpath(__file__)) + '/'
+
+# 配置参数
+with open(dirname + 'config.json', 'r') as file:
+    configs = json.load(file)
+    config = configs['error_monitor']
+
+    # 参数获取
+    webhook_token = config['webhook_token']
+    keywords = config['keywords']
+
 # 日志配置
 logging.basicConfig(
-    filename=script + 'error_monitor.log',
+    filename=dirname + 'error_monitor.log',
     level=logging.INFO,
     format='[%(levelname)s],%(asctime)s,%(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
 
 # 默认headers
 Headers = {"Content-Type": "application/json", "charset": "utf-8"}
-
-# 钉钉webhook
-Webhook_Token = "https://oapi.dingtalk.com/robot/send?access_token=72bacd6eca8f19cbc559784648618072a0a66f33e4f103881b25d9d7d6f7242b"
 
 
 # 获取liunx的ip
@@ -54,7 +59,7 @@ def webhook(system, text):
     jsondate = json.dumps(markdown)
     logging.info(system + ',' + Ip + 'has error message:' + text)
     request = urllib2.Request(
-        url=Webhook_Token, data=jsondate, headers=Headers)
+        url=webhook_token, data=jsondate, headers=Headers)
     urllib2.urlopen(request)
 
 
@@ -76,8 +81,10 @@ def follow(self, system="", s=1):
                         file.seek(0, 2)
                         logging.warn('file is reopen:' + self)
             else:
-                if ("[ERROR]" in line):
-                    webhook(system, line)
+                for key in keywords:
+                    if (key in line):
+                        webhook(system, line)
+                        break
             time.sleep(s)
     finally:
         file.close()

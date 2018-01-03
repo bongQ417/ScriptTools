@@ -1,0 +1,28 @@
+[
+  {
+      "hostname": "127.0.0.2",
+      "username": "root",
+      "password": "XXXXX",
+      "remotepath": "/root",
+      "system": "itembase",
+      "log_delete": [
+          {
+              "logpath": "/root/logs/base/archive",
+              "day": 7
+          },{
+            "logpath": "/root/tomcat-8080/logs",
+            "day": 7
+        }
+      ],
+      "log_archive": [
+          {
+              "logpath": "/root/logs/base"
+          }
+      ],
+      "error_monitor": [
+          {
+              "logpath": "/root/logs/base/common-error.log"
+          }
+      ]
+  }
+]

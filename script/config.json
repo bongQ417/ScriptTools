@@ -1,0 +1,18 @@
+{
+  "error_monitor": {
+    "webhook_token":"https://oapi.dingtalk.com/robot/send?access_token=72bacd6eca8f19cbc559784648618072a0a66f33e4f103881b25d9d7d6f7242b",
+    "keywords": [
+      "[ERROR]"
+    ]
+  },
+  "log_archive": {
+    "keywords": [
+      "log"
+    ]
+  },
+  "log_delete": {
+    "keywords": [
+      "log"
+    ]
+  }
+}

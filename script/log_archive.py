@@ -6,14 +6,19 @@ import datetime
 import shutil
 import tarfile
 import logging
+import json
+
+dirname = os.path.dirname(os.path.realpath(__file__)) + '/'
+
+# 配置参数
+with open(dirname + 'config.json', 'r') as file:
+    configs = json.load(file)
+    config = configs['log_archive']
+    keywords = config['keywords']
 
 # 日志配置
-script = os.environ["HOME"] + '/script/'
-if not (os.path.exists(script)):
-    os.mkdir(script, 0755)
-# 日志配置
 logging.basicConfig(
-    filename=script + 'log_archive.log',
+    filename=dirname + 'log_archive.log',
     level=logging.INFO,
     format='[%(levelname)s],%(asctime)s,%(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
@@ -30,8 +35,6 @@ def archive_log(basepath, system):
     yesterday = getYesterday()
     logdir = system + '-log.' + yesterday
     archive = 'archive'
-    # 存储脚本原始路径
-    # originPath = os.getcwd()
     # 修改路径到日志根目录
     os.chdir(basepath)
     if not (os.path.exists(archive)):
@@ -54,9 +57,13 @@ def archive_log(basepath, system):
             # 判断文件名包含log字段的文件
             mtime = datetime.date.fromtimestamp(os.path.getmtime(file))
             dt = today - mtime
-            if (('log' in file) and (dt.days > 0) and (os.path.isfile(file))):
-                shutil.move(file, targetdir)
-                logging.info(file + ' has moved')
+            if ((dt.days > 0) and (os.path.isfile(file))):
+                # 判断文件名是否符合要求
+                for key in keywords:
+                    if(key in file):
+                        shutil.move(file, targetdir)
+                        logging.info(file + ' has moved')
+                        break
         # tar -jcvf压缩文件
         os.chdir(archive)
         tar = tarfile.open(tarname, "w:bz2")

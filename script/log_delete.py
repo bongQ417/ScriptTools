@@ -4,13 +4,18 @@ from sys import argv
 import os
 import datetime
 import logging
+import json
 
-script = os.environ["HOME"] + '/script/'
-if not (os.path.exists(script)):
-    os.mkdir(script, 0755)
+dirname = os.path.dirname(os.path.realpath(__file__)) + '/'
+
+# 配置参数
+with open(dirname + 'config.json', 'r') as file:
+    configs = json.load(file)
+    config = configs['log_delete']
+    keywords = config['keywords']
 # 日志配置
 logging.basicConfig(
-    filename=script + 'log_delete.log',
+    filename=dirname + 'log_delete.log',
     level=logging.INFO,
     format='[%(levelname)s],%(asctime)s,%(message)s',
     datefmt='%Y-%m-%d %H:%M:%S')
@@ -28,14 +33,17 @@ def log_delete(basepath, delta=7):
     today = datetime.date.today()
     for file in filelist:
         # 判断文件名包含log字段的文件
-        if (('log' in file) and (os.path.isfile(file))):
-            # 获取文件的mtime时间
-            mtime = datetime.date.fromtimestamp(os.path.getmtime(file))
-            dt = today - mtime
-            if (dt.days >= delta):
-                logging.info('delete [' + file + '],and mtime=' + str(mtime))
-                # 删除过期文件
-                os.remove(file)
+        for key in keywords:
+            if ((key in file) and (os.path.isfile(file))):
+                # 获取文件的mtime时间
+                mtime = datetime.date.fromtimestamp(os.path.getmtime(file))
+                dt = today - mtime
+                if (dt.days >= delta):
+                    logging.info(
+                        'delete [' + file + '],and mtime=' + str(mtime))
+                    # 删除过期文件
+                    os.remove(file)
+                break
     logging.info('-----------end delete log-----------')
 
 
