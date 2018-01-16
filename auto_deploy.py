@@ -63,6 +63,9 @@ for host in hosts:
     for params in error_monitor:
         logpath = params['logpath']
         commandList.append(
+            'echo "0 1 * * * sh ' + remotepath + '/script/error_monitor.sh ' +
+            logpath + ' ' + system + '" >> crontab.txt')
+        commandList.append(
             'sh script/error_monitor.sh ' + logpath + ' ' + system)
     commandList.append('crontab crontab.txt')
     semicolon = ';'

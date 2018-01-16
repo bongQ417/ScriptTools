@@ -9,6 +9,9 @@ import fcntl
 import struct
 import logging
 import os
+import sys
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 dirname = os.path.dirname(os.path.realpath(__file__)) + '/'
 
