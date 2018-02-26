@@ -3,6 +3,7 @@
 from sys import argv
 from pymongo import MongoClient
 import pexpect
+import os
 # from bson import json_util as jsonb
 
 conn = MongoClient('127.0.0.1', 27017)
@@ -10,10 +11,11 @@ db = conn.auto_login
 host_cluster = db.host_cluster
 
 
-def auto_login(user, password, ip):
-    patterns = ['.*yes/no.*', '[Pp]assword:', '#']
+def install_auto_login(user, password, ip):
+    patterns = ['.*yes/no.*', '[Pp]assword:', 'make sure that only the key(s) you wanted were added']
     CONTINUES, PASSWD, OPFLAG = range(len(patterns))
-    child = pexpect.spawn('ssh %s@%s' % (user, ip))
+    os.chdir(os.environ['HOME']+'/.ssh')
+    child = pexpect.spawn('ssh-copy-id -i id_rsa.pub %s@%s' % (user, ip))
     while True:
         i = child.expect(patterns)
         if i == CONTINUES:
@@ -22,7 +24,6 @@ def auto_login(user, password, ip):
             child.sendline(password)
         elif i == OPFLAG:
             break
-    child.interact()
 
 
 def add_host(argv):
@@ -70,7 +71,7 @@ def login(hostname):
       'hostname': hostname
     }
     result = host_cluster.find_one(hostname_json)
-    auto_login(result['user'], result['password'], result['ip'])
+    os.system('ssh %s@%s' % (result['user'], result['ip']))
 
 
 if __name__ == '__main__':
