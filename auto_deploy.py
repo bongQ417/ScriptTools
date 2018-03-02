@@ -9,6 +9,8 @@ dirname = os.path.dirname(os.path.realpath(__file__)) + '/'
 with open(dirname + 'config.json', 'r') as file:
     hosts = json.load(file)
 
+os.system('rm -rf /Users/bongq/CodeHub/Git/ScriptTools/script.tar')
+os.system('tar -cvf /Users/bongq/CodeHub/Git/ScriptTools/script.tar /Users/bongq/CodeHub/Git/ScriptTools/script')
 localfile = '/Users/bongq/CodeHub/Git/ScriptTools/script.tar'
 
 

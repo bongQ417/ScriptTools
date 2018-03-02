@@ -10,6 +10,8 @@ import struct
 import logging
 import os
 import sys
+import datetime
+
 reload(sys)
 sys.setdefaultencoding('utf8')
 
@@ -51,12 +53,15 @@ Ip = get_ip_address("eth0")
 
 
 # 请求text
-def webhook(system, text):
+def webhook(system, text, count=1):
     markdown = {
         "msgtype": "markdown",
         "markdown": {
-            "title": system + "有异常错误",
-            "text": "# 系统:" + system + "\n# ip:" + Ip + "\n> " + text
+            "title":
+            system + "有异常错误",
+            "text":
+            "# 系统:" + system + "\n# ip:" + Ip + "\n# 总条数:" + str(count) +
+            "\n> " + text
         }
     }
     jsondate = json.dumps(markdown)
@@ -66,14 +71,28 @@ def webhook(system, text):
     urllib2.urlopen(request)
 
 
+def sameMessage(str1, str2):
+    index1 = str1.index(',')
+    index2 = str2.index(',')
+    if (index1 > -1 and index2 > -1):
+        return str1[index1:] == str2[index2:]
+    return False
+
+
 # tailf命令 跟踪日志文件
 def follow(self, system="", s=1):
     file = open(self, 'r')
+    # 压缩消息用的参数
+    first_message = ''
+    last_message = ''
+    count = 0
+    start_date = datetime.datetime.now()
     try:
         file.seek(0, 2)
         while True:
             curr_position = file.tell()
             line = file.readline()
+            hasError = False
             if not line:
                 file.seek(curr_position)
                 # 先关闭原先文件,再打开新文件
@@ -83,17 +102,44 @@ def follow(self, system="", s=1):
                         file = open(self, 'r')
                         file.seek(0, 2)
                         logging.warn('file is reopen:' + self)
+                else:
+                    #文件不存在的情况下sleep60秒
+                    time.sleep(60)
             else:
                 for key in keywords:
                     if (key in line):
-                        webhook(system, line)
+                        hasError = True
+                        last_message = line
+                        if (count == 0):
+                            start_date = datetime.datetime.now()
+                            first_message = line
                         break
             time.sleep(s)
+
+            #消息压缩处理
+            now = datetime.datetime.now()
+            dt = now - start_date
+            if (dt.seconds > 300 and first_message != ''
+                    and sameMessage(first_message, last_message)):
+                webhook(system, first_message, count)
+                first_message = ''
+                last_message = ''
+                count = 0
+                start_date = datetime.datetime.now()
+            if (hasError):
+                if sameMessage(first_message, last_message):
+                    count = count + 1
+                else:
+                    webhook(system, first_message, count)
+                    start_date = datetime.datetime.now()
+                    first_message = last_message
+                    count = 1
     finally:
         file.close()
 
 
 if __name__ == '__main__':
+
     if (len(argv) < 3):
         logging.error('less than 2 params')
     else:
