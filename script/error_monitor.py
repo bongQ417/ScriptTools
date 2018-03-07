@@ -72,15 +72,15 @@ def webhook(system, text, count=1):
 
 
 def sameMessage(str1, str2):
-    index1 = str1.index(',')
-    index2 = str2.index(',')
+    index1 = str1.find(',')
+    index2 = str2.find(',')
     if (index1 > -1 and index2 > -1):
         return str1[index1:] == str2[index2:]
     return False
 
 
 # tailf命令 跟踪日志文件
-def follow(self, system="", s=1):
+def follow(self, system="", s=0.01):
     file = open(self, 'r')
     # 压缩消息用的参数
     first_message = ''
@@ -119,9 +119,11 @@ def follow(self, system="", s=1):
             #消息压缩处理
             now = datetime.datetime.now()
             dt = now - start_date
-            if (dt.seconds > 300 and first_message != ''
+            if (dt.seconds > 120 and first_message != ''
                     and sameMessage(first_message, last_message)):
                 webhook(system, first_message, count)
+                logging.info('%s, %s, %s, %s' % (datetime.datetime.now(),
+                                                 system, count, first_message))
                 first_message = ''
                 last_message = ''
                 count = 0
@@ -129,8 +131,13 @@ def follow(self, system="", s=1):
             if (hasError):
                 if sameMessage(first_message, last_message):
                     count = count + 1
+                    logging.info('%s, count=%s' % (datetime.datetime.now(),
+                                                   count))
                 else:
                     webhook(system, first_message, count)
+                    logging.info('%s, %s, %s, %s' %
+                                 (datetime.datetime.now(), system, count,
+                                  first_message))
                     start_date = datetime.datetime.now()
                     first_message = last_message
                     count = 1
