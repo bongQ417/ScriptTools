@@ -53,39 +53,31 @@ Ip = get_ip_address("eth0")
 
 
 # 请求text
-def webhook(system, text, count=1):
+def webhook(system, message_list):
+    text = '';
+    for i in range(len(message_list)):
+        text += message_list[i]
     markdown = {
         "msgtype": "markdown",
         "markdown": {
             "title":
             system + "有异常错误",
             "text":
-            "# 系统:" + system + "\n# ip:" + Ip + "\n# 总条数:" + str(count) +
+            "# 系统:" + system + "\n# ip:" + Ip +
             "\n> " + text
         }
     }
-    jsondate = json.dumps(markdown)
-    logging.info(system + ',' + Ip + 'has error message:' + text)
+    jsondata = json.dumps(markdown)
+    logging.info(system + ',' + Ip + 'has error message:\n' + text)
     request = urllib2.Request(
-        url=webhook_token, data=jsondate, headers=Headers)
+        url=webhook_token, data=jsondata, headers=Headers)
     urllib2.urlopen(request)
-
-
-def sameMessage(str1, str2):
-    index1 = str1.find(',')
-    index2 = str2.find(',')
-    if (index1 > -1 and index2 > -1):
-        return str1[index1:] == str2[index2:]
-    return False
-
 
 # tailf命令 跟踪日志文件
 def follow(self, system="", s=0.01):
     file = open(self, 'r')
-    # 压缩消息用的参数
-    first_message = ''
-    last_message = ''
-    count = 0
+    # 消息数组用的参数
+    message_list = []
     start_date = datetime.datetime.now()
     try:
         file.seek(0, 2)
@@ -109,38 +101,25 @@ def follow(self, system="", s=0.01):
                 for key in keywords:
                     if (key in line):
                         hasError = True
-                        last_message = line
-                        if (count == 0):
-                            start_date = datetime.datetime.now()
-                            first_message = line
+                        # 多读一行日志
+                        line += '\t'
+                        line += file.readline()
                         break
             time.sleep(s)
 
-            #消息压缩处理
+            # 存储消息
+            if (hasError):
+                message_list.append(line)
+
+            # 每隔30s发送一次消息
             now = datetime.datetime.now()
             dt = now - start_date
-            if (dt.seconds > 120 and first_message != ''
-                    and sameMessage(first_message, last_message)):
-                webhook(system, first_message, count)
-                logging.info('%s, %s, %s, %s' % (datetime.datetime.now(),
-                                                 system, count, first_message))
-                first_message = ''
-                last_message = ''
-                count = 0
+            if (dt.seconds > 10):
+                # 消息大于1条则发送
+                if (len(message_list) > 0):
+                    webhook(system, message_list)
                 start_date = datetime.datetime.now()
-            if (hasError):
-                if sameMessage(first_message, last_message):
-                    count = count + 1
-                    logging.info('%s, count=%s' % (datetime.datetime.now(),
-                                                   count))
-                else:
-                    webhook(system, first_message, count)
-                    logging.info('%s, %s, %s, %s' %
-                                 (datetime.datetime.now(), system, count,
-                                  first_message))
-                    start_date = datetime.datetime.now()
-                    first_message = last_message
-                    count = 1
+                message_list = []
     finally:
         file.close()
 
